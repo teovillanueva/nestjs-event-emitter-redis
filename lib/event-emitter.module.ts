@@ -1,13 +1,13 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
-import { EventEmitter2 } from 'eventemitter2';
 import { EventSubscribersLoader } from './event-subscribers.loader';
 import { EventsMetadataAccessor } from './events-metadata.accessor';
 import { EventEmitterModuleOptions } from './interfaces';
+import { ADAPTER_KEY } from './constants';
 
 @Module({})
 export class EventEmitterModule {
-  static forRoot(options?: EventEmitterModuleOptions): DynamicModule {
+  static forRoot(options: EventEmitterModuleOptions): DynamicModule {
     return {
       global: options?.global ?? true,
       module: EventEmitterModule,
@@ -16,11 +16,11 @@ export class EventEmitterModule {
         EventSubscribersLoader,
         EventsMetadataAccessor,
         {
-          provide: EventEmitter2,
-          useValue: new EventEmitter2(options),
+          provide: ADAPTER_KEY,
+          useValue: options.adapter,
         },
       ],
-      exports: [EventEmitter2],
+      exports: [ADAPTER_KEY],
     };
   }
 }

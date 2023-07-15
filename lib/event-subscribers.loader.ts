@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   OnApplicationBootstrap,
   OnApplicationShutdown,
@@ -15,9 +16,9 @@ import {
   InstanceWrapper,
 } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
-import { EventEmitter2 } from 'eventemitter2';
 import { EventsMetadataAccessor } from './events-metadata.accessor';
-import { OnEventOptions } from './interfaces';
+import { ADAPTER_KEY } from './constants';
+import { Adapter } from './interfaces';
 
 @Injectable()
 export class EventSubscribersLoader
@@ -26,22 +27,25 @@ export class EventSubscribersLoader
   private readonly injector = new Injector();
 
   constructor(
+    @Inject(ADAPTER_KEY)
+    private readonly adapter: Adapter,
     private readonly discoveryService: DiscoveryService,
-    private readonly eventEmitter: EventEmitter2,
     private readonly metadataAccessor: EventsMetadataAccessor,
     private readonly metadataScanner: MetadataScanner,
     private readonly moduleRef: ModuleRef,
   ) {}
 
-  onApplicationBootstrap() {
-    this.loadEventListeners();
+  async onApplicationBootstrap() {
+    await this.loadEventListeners();
   }
 
-  onApplicationShutdown() {
-    this.eventEmitter.removeAllListeners();
+  async onApplicationShutdown() {
+    this.adapter.removeAllListeners();
+
+    await this.adapter.close();
   }
 
-  loadEventListeners() {
+  async loadEventListeners() {
     const providers = this.discoveryService.getProviders();
     const controllers = this.discoveryService.getControllers();
     [...providers, ...controllers]
@@ -62,6 +66,8 @@ export class EventSubscribersLoader
             ),
         );
       });
+
+    await this.adapter.ready();
   }
 
   private subscribeToEventIfListener(
@@ -78,7 +84,7 @@ export class EventSubscribersLoader
 
     for (const eventListenerMetadata of eventListenerMetadatas) {
       const { event, options } = eventListenerMetadata;
-      const listenerMethod = this.getRegisterListenerMethodBasedOn(options);
+      const listenerMethod = this.adapter.getRegisterListenerMethod(options);
 
       if (isRequestScoped) {
         this.registerRequestScopedListener({
@@ -99,19 +105,13 @@ export class EventSubscribersLoader
     }
   }
 
-  private getRegisterListenerMethodBasedOn(options?: OnEventOptions) {
-    return Boolean(options?.prependListener)
-      ? this.eventEmitter.prependListener.bind(this.eventEmitter)
-      : this.eventEmitter.on.bind(this.eventEmitter);
-  }
-
   private registerRequestScopedListener(eventListenerContext: {
-    listenerMethod: EventEmitter2['on'];
+    listenerMethod: ReturnType<Adapter['getRegisterListenerMethod']>;
     event: string | symbol | (string | symbol)[];
     eventListenerInstance: Record<string, any>;
     moduleRef: Module;
     listenerMethodKey: string;
-    options?: OnEventOptions;
+    options?: any;
   }) {
     const {
       listenerMethod,
@@ -135,6 +135,7 @@ export class EventSubscribersLoader
           moduleRef.providers,
           contextId,
         );
+
         return contextInstance[listenerMethodKey].call(
           contextInstance,
           ...args,

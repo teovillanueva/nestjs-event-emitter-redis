@@ -1,14 +1,17 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
-import { EventEmitter2 } from 'eventemitter2';
 import {
   TEST_EVENT_MULTIPLE_PAYLOAD,
   TEST_EVENT_PAYLOAD,
   TEST_EVENT_STRING_PAYLOAD,
 } from './constants';
+import { EventEmitter, InjectEmitter } from '../../../lib';
 
 @Injectable()
 export class EventsProducer implements OnApplicationBootstrap {
-  constructor(private readonly eventEmitter: EventEmitter2) {}
+  constructor(
+    @InjectEmitter()
+    private readonly eventEmitter: EventEmitter,
+  ) {}
 
   onApplicationBootstrap() {
     this.eventEmitter.emit('test.event', TEST_EVENT_PAYLOAD);

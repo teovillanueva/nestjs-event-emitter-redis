@@ -1,6 +1,6 @@
-import { ConstructorOptions } from 'eventemitter2';
+import { Adapter } from './adapter.interface';
 
-export interface EventEmitterModuleOptions extends ConstructorOptions {
+export interface EventEmitterModuleOptions {
   /**
    * If "true", registers `EventEmitterModule` as a global module.
    * See: https://docs.nestjs.com/modules#global-modules
@@ -8,4 +8,6 @@ export interface EventEmitterModuleOptions extends ConstructorOptions {
    * @default true
    */
   global?: boolean;
+
+  adapter: Adapter;
 }

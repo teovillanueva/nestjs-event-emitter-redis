@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { OnEvent } from '../../lib';
-import { EVENT_PAYLOAD } from '../../lib';
+import { OnEvent } from '../../../lib/adapters/eventemitter2.adapter';
+import { EVENT_PAYLOAD } from '../../../lib';
 import { RequestScopedEventPayload } from './request-scoped-event-payload';
 
 @Injectable()

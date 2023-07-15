@@ -1,1 +1,1 @@
-export * from './on-event.decorator';
+export * from './inject-emitter.decorator';

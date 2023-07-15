@@ -21,7 +21,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "eventemitter2": "6.4.9"
+    "eventemitter2": "6.4.9",
+    "ioredis": "^5.3.2"
   },
   "devDependencies": {
     "@commitlint/cli": "17.6.6",

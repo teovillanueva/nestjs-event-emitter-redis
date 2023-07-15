@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OnEvent } from '../../lib';
+import { OnEvent } from '../../../lib/adapters/redis.adapter';
 
 @Injectable()
 export class EventsProviderAliasedConsumer {
@@ -13,7 +13,7 @@ export class EventsProviderAliasedConsumer {
     return this._eventPayload;
   }
 
-  @OnEvent('test.*')
+  @OnEvent('test')
   onTestEvent(payload: Record<string, any>) {
     this.eventPayload = payload;
   }
